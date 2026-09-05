@@ -16,12 +16,12 @@ export async function getWebsiteOffers() {
 
   const { data, error } = await supabase
     .from("offers")
-    .select("id, title, description, code, is_active, starts_at, ends_at")
+    .select("id, title, description,  is_active, starts_at, ends_at")
     .eq("is_active", true)
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
     .order("created_at", { ascending: false });
-
+// code,
   if (error) throw new Error(error.message);
 
   return data ?? [];

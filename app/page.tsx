@@ -78,43 +78,148 @@
 
 
 
-
 import { getWebsiteBusiness } from "@/lib/website/business";
+import { getWebsiteBusinessHours } from "@/lib/website/hours";
+import { getWebsiteFaqs } from "@/lib/website/faqs";
+import { getWebsiteOffers } from "@/lib/website/offers";
+import { getWebsiteServices } from "@/lib/website/services";
+import { ContactActions } from "@/components/contact-actions";
+import { SectionHeading } from "@/components/section-heading";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+
+const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default async function HomePage() {
-  const business = await getWebsiteBusiness();
+  const [business, services, faqs, offers, hours] = await Promise.all([
+    getWebsiteBusiness(),
+    getWebsiteServices(),
+    getWebsiteFaqs(),
+    getWebsiteOffers(),
+    getWebsiteBusinessHours(),
+  ]);
 
   return (
-    <main className="min-h-screen p-6">
-      <p className="text-sm text-muted-foreground">Business Website Starter</p>
+    <main className="min-h-screen bg-white text-slate-950">
+      <SiteHeader business={business} />
+      <ContactActions
+        phone={business?.contact_phone}
+        email={business?.contact_email}
+      />
 
-      <h1 className="mt-4 text-4xl font-bold">
-        {business?.business_name || "Your Business Name"}
-      </h1>
+      <section className="mx-auto max-w-6xl px-4 py-16">
 
-      <p className="mt-3 max-w-xl text-muted-foreground">
-        This website is now connected with your admin dashboard data.
-      </p>
+        <p className="text-sm font-medium text-blue-600">Business Website Starter</p>
 
-      <div className="mt-6 flex gap-3">
-        {business?.contact_phone && (
-          <a
-            href={`tel:${business.contact_phone}`}
-            className="rounded-md bg-black px-4 py-2 text-white"
-          >
-            Call Now
-          </a>
-        )}
+        <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
+          {business?.business_name || "Your Business Name"}
+        </h1>
 
-        {business?.contact_email && (
-          <a
-            href={`mailto:${business.contact_email}`}
-            className="rounded-md border px-4 py-2"
-          >
-            Email Us
-          </a>
-        )}
-      </div>
+        <p className="mt-4 max-w-2xl text-lg text-slate-600">
+          Professional local business website connected with your admin dashboard.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          {business?.contact_phone && (
+            <a href={`tel:${business.contact_phone}`} className="rounded-md bg-blue-600 px-5 py-3 text-white">
+              Call Now
+            </a>
+          )}
+
+          {business?.contact_email && (
+            <a href={`mailto:${business.contact_email}`} className="rounded-md border px-5 py-3">
+              Email Us
+            </a>
+          )}
+        </div>
+      </section>
+
+      <section className="border-t bg-slate-50">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-2xl font-bold">Services</h2>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {services.map((service) => (
+              <div key={service.id} className="rounded-lg border bg-white p-5">
+                <h3 className="font-semibold">{service.name}</h3>
+                {service.description && (
+                  <p className="mt-2 text-sm text-slate-600">{service.description}</p>
+                )}
+                {service.price !== null && (
+                  <p className="mt-4 text-sm font-medium">From Rs. {service.price}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {services.length === 0 && (
+            <p className="mt-4 text-sm text-slate-500">No services added yet.</p>
+          )}
+        </div>
+      </section>
+
+      {offers.length > 0 && (
+        <section>
+          <div className="mx-auto max-w-6xl px-4 py-12">
+            <h2 className="text-2xl font-bold">Current Offers</h2>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {offers.map((offer) => (
+                <div key={offer.id} className="rounded-lg border border-blue-100 bg-blue-50 p-5">
+                  <h3 className="font-semibold">{offer.title}</h3>
+                  {offer.description && (
+                    <p className="mt-2 text-sm text-slate-600">{offer.description}</p>
+                  )}
+                  {/* {offer.code && (
+                    <p className="mt-4 text-sm font-bold text-blue-700">Code: {offer.code}</p>
+                  )} */}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="border-t bg-slate-50">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-2xl font-bold">Business Hours</h2>
+
+          <div className="mt-6 grid gap-2 md:grid-cols-2">
+            {hours.map((hour) => (
+              <div key={hour.id} className="flex justify-between rounded-md border bg-white p-3 text-sm">
+                <span>{dayNames[hour.day_of_week] || `Day ${hour.day_of_week}`}</span>
+                <span className="font-medium">
+                  {hour.is_closed
+                    ? "Closed"
+                    : hour.is_24h
+                      ? "Open 24 hours"
+                      : `${hour.opens_at || "-"} - ${hour.closes_at || "-"}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-2xl font-bold">FAQs</h2>
+
+          <div className="mt-6 space-y-4">
+            {faqs.map((faq) => (
+              <div key={faq.id} className="rounded-lg border p-5">
+                <h3 className="font-semibold">{faq.question}</h3>
+                <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+
+          {faqs.length === 0 && (
+            <p className="mt-4 text-sm text-slate-500">No FAQs added yet.</p>
+          )}
+        </div>
+      </section>
+      <SiteFooter business={business} />
     </main>
   );
 }
