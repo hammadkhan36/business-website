@@ -1,4 +1,5 @@
 import { getCustomForms, submitCustomForm } from "@/lib/website/forms";
+import { createElement } from "react";
 
 async function submitFirstForm(formData: FormData) {
   "use server";
@@ -37,17 +38,17 @@ export default async function TestFormsPage() {
         <form action={submitFirstForm} className="mt-4 space-y-3">
           <input type="hidden" name="formId" value={firstForm.id} />
 
-          <input
-            name="name"
-            placeholder="Name"
-            className="block rounded border px-3 py-2"
-          />
+          {createElement("input", {
+            name: "name",
+            placeholder: "Name",
+            className: "block rounded border px-3 py-2",
+          })}
 
-          <input
-            name="phone"
-            placeholder="Phone"
-            className="block rounded border px-3 py-2"
-          />
+          {createElement("input", {
+            name: "phone",
+            placeholder: "Phone",
+            className: "block rounded border px-3 py-2",
+          })}
 
           <button type="submit" className="rounded bg-black px-4 py-2 text-white">
             Submit Custom Form
