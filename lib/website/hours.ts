@@ -3,10 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 export type WebsiteBusinessHour = {
   id: string;
   day_of_week: number;
+  day_name: string;
   opens_at: string | null;
   closes_at: string | null;
-  is_closed: boolean | null;
-  is_24h: boolean | null;
+  is_closed: boolean;
+  is_24h: boolean;
+  updated_at: string;
 };
 
 export async function getWebsiteBusinessHours() {
@@ -14,10 +16,10 @@ export async function getWebsiteBusinessHours() {
 
   const { data, error } = await supabase
     .from("business_hours")
-    .select("id, day_of_week, opens_at, closes_at, is_closed, is_24h")
+    .select("id, day_of_week, day_name, opens_at, closes_at, is_closed, is_24h, updated_at")
     .order("day_of_week", { ascending: true });
 
   if (error) throw new Error(error.message);
 
-  return data ?? [];
+  return (data ?? []) as WebsiteBusinessHour[];
 }
