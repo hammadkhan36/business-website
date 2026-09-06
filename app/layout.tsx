@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getAdminWebsiteConfig } from "@/lib/website/admin-config";
 import { createSeoMetadata } from "@/lib/website/seo";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 
 // Read each deployment's admin configuration at request time, not during build.
 export const dynamic = "force-dynamic";
@@ -41,7 +42,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <PageViewTracker />
+        {children}
+        </body>
+
     </html>
   );
 }
