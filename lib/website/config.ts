@@ -1,6 +1,7 @@
 export const websiteConfig = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001",
-  businessId: process.env.NEXT_PUBLIC_BUSINESS_ID || null,
+  // Enable only after business-specific UI and public content are ready.
+  allowIndexing: process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true",
 
   defaultTitle: "Local Business Website",
   defaultDescription:

@@ -28,8 +28,8 @@ export function createSeoMetadata({
       canonical: url,
     },
     robots: {
-      index: !noIndex,
-      follow: !noIndex,
+      index: websiteConfig.allowIndexing && !noIndex,
+      follow: websiteConfig.allowIndexing && !noIndex,
     },
     openGraph: {
       title: finalTitle,

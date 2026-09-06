@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { websiteConfig } from "@/lib/website/config";
 
 export default function robots(): MetadataRoute.Robots {
+  if (!websiteConfig.allowIndexing) {
+    return { rules: { userAgent: "*", disallow: "/" } };
+  }
   return {
     rules: {
       userAgent: "*",

@@ -1,17 +1,8 @@
-import { getWebsiteBusiness } from "@/lib/website/business";
-import { getWebsiteAreas } from "@/lib/website/areas";
-import { getWebsiteFaqs } from "@/lib/website/faqs";
-import { getWebsiteOffers } from "@/lib/website/offers";
-import { getWebsiteBusinessHours } from "@/lib/website/hours";
+import { getAdminWebsiteConfig } from "@/lib/website/admin-config";
 
 export default async function HomePage() {
-  const [business, areas, faqs, offers, hours] = await Promise.all([
-    getWebsiteBusiness(),
-    getWebsiteAreas(),
-    getWebsiteFaqs(),
-    getWebsiteOffers(),
-    getWebsiteBusinessHours(),
-  ]);
+  const { business, service_areas: areas, faqs, offers, business_hours: hours } =
+    await getAdminWebsiteConfig();
 
   return (
     <main className="p-6">
