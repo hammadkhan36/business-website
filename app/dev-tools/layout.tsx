@@ -11,3 +11,10 @@ export default function DevToolsLayout({
 
   return children;
 }
+
+
+
+// Iska faida:
+
+// local development mein test pages open honge
+// production build/live website mein 404 honge
