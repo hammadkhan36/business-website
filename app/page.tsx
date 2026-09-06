@@ -1,4 +1,7 @@
 import { getAdminWebsiteConfig } from "@/lib/website/admin-config";
+import { trackWebsiteEvent } from "@/lib/website/analytics-client";
+
+import ClientButtons from "@/components/ClientButtons"; // test ka lia 
 
 export default async function HomePage() {
   const { business, service_areas: areas, faqs, offers, business_hours: hours } =
@@ -21,6 +24,15 @@ export default async function HomePage() {
           2
         )}
       </pre>
+
+      {/* Purani wali saari <a> aur <button> wali div hata di. Ab yeh naya component laga diya: */}
+      <ClientButtons
+        phone={ "923001234567"}
+        whatsapp={ "923001234567"}
+        mapUrl="https://maps.google.com/?q=business"
+      />
+
+
     </main>
   );
 }
