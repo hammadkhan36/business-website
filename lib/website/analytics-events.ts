@@ -1,0 +1,33 @@
+export const ANALYTICS_LABELS = {
+  headerCall: "Header Call Button",
+  headerWhatsApp: "Header WhatsApp Button",
+  heroCall: "Hero Call Button",
+  heroWhatsApp: "Hero WhatsApp Button",
+  heroBooking: "Hero Book Now Button",
+  servicesBooking: "Service Card Book Button",
+  contactCall: "Contact Call Button",
+  contactWhatsApp: "Contact WhatsApp Button",
+  footerCall: "Footer Call Button",
+  footerWhatsApp: "Footer WhatsApp Button",
+  footerMap: "Footer Map Button",
+  leadForm: "Lead Form Submitted",
+  appointmentForm: "Appointment Form Submitted",
+  reviewForm: "Review Form Submitted",
+  customForm: "Custom Form Submitted",
+  couponValidate: "Coupon Validated",
+  couponRedeem: "Coupon Redeemed",
+} as const;
+
+export const ANALYTICS_EVENTS = {
+  pageView: "page_view",
+  callClick: "call_click",
+  whatsappClick: "whatsapp_click",
+  mapClick: "map_click",
+  bookingClick: "booking_click",
+  leadSubmit: "lead_submit",
+  appointmentSubmit: "appointment_submit",
+  couponValidate: "coupon_validate",
+  couponRedeem: "coupon_redeem",
+  reviewSubmit: "review_submit",
+  formSubmit: "form_submit",
+} as const;

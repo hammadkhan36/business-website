@@ -7,14 +7,16 @@ click tracker kasa add karna ha us ki examples daak lo
 
 ## ya call click tracker ki example ha 
 
+import { ANALYTICS_EVENTS, ANALYTICS_LABELS } from "@/lib/website/analytics-events";
 import { trackWebsiteEvent } from "@/lib/website/analytics-client";
+
 
 <a
   href="tel:+923001234567"
   onClick={() =>
     trackWebsiteEvent({
-      event_type: "call_click",
-      label: "Header Call Button",
+      event_type: ANALYTICS_EVENTS.call_click,
+  label: ANALYTICS_LABELS.heroCall,
     })
   }
 >
@@ -35,9 +37,9 @@ import { trackWebsiteEvent } from "@/lib/website/analytics-client";
 <a
   href="https://wa.me/923001234567"
   onClick={() =>
-    trackWebsiteEvent({
-      event_type: "whatsapp_click",
-      label: "Hero WhatsApp Button",
+        trackWebsiteEvent({
+    event_type: ANALYTICS_EVENTS.whatsappClick,
+    label: ANALYTICS_LABELS.heroWhatsApp,
     })
   }
 >
@@ -61,8 +63,8 @@ import { trackWebsiteEvent } from "@/lib/website/analytics-client";
   href="https://maps.google.com/?q=business"
   onClick={() =>
     trackWebsiteEvent({
-      event_type: "map_click",
-      label: "Contact Map Button",
+     event_type: ANALYTICS_EVENTS.mapClick,
+    label: ANALYTICS_LABELS.footerMap,
     })
   }
 >
@@ -86,8 +88,8 @@ import { trackWebsiteEvent } from "@/lib/website/analytics-client";
   type="button"
   onClick={() =>
     trackWebsiteEvent({
-      event_type: "booking_click",
-      label: "Hero Book Now Button",
+       event_type: ANALYTICS_EVENTS.bookingClick,
+    label: ANALYTICS_LABELS.servicesBooking,
     })
   }
 >
