@@ -1,4 +1,8 @@
+"use client";
+
 import { Mail, Phone } from "lucide-react";
+import { trackWebsiteEvent } from "@/lib/website/analytics-client";
+import { ANALYTICS_EVENTS, ANALYTICS_LABELS } from "@/lib/website/analytics-events";
 
 type ContactActionsProps = {
   phone?: string | null;
@@ -19,6 +23,15 @@ export function ContactActions({ phone, email, whatsapp }: ContactActionsProps) 
       {callPhone && (
         <a
           href={`tel:${callPhone}`}
+          onClick={() =>
+            trackWebsiteEvent({
+              event_type: ANALYTICS_EVENTS.callClick,
+              label: ANALYTICS_LABELS.contactCall,
+              metadata: {
+                phone: callPhone,
+              },
+            })
+          }
           className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Phone className="h-4 w-4" />
@@ -31,6 +44,15 @@ export function ContactActions({ phone, email, whatsapp }: ContactActionsProps) 
           href={`https://wa.me/${whatsappPhone.replace("+", "")}`}
           target="_blank"
           rel="noreferrer"
+          onClick={() =>
+            trackWebsiteEvent({
+              event_type: ANALYTICS_EVENTS.whatsappClick,
+              label: ANALYTICS_LABELS.contactWhatsApp,
+              metadata: {
+                phone: whatsappPhone,
+              },
+            })
+          }
           className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700"
         >
           WhatsApp
