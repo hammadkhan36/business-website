@@ -1,73 +1,138 @@
 "use client";
 
-import { Mail, Phone } from "lucide-react";
-import { trackWebsiteEvent } from "@/lib/website/analytics-client";
-import { ANALYTICS_EVENTS, ANALYTICS_LABELS } from "@/lib/website/analytics-events";
+import {
+  Copy,
+  ExternalLink,
+  MapPin,
+  Phone,
+  Share2,
+  MessageCircle,
+} from "lucide-react";
+import {
+  trackCallClick,
+  trackCopyPhoneClick,
+  trackMapClick,
+  trackShareClick,
+  trackWebsiteClick,
+  trackWhatsAppClick,
+} from "@/lib/website/analytics-client";
 
 type ContactActionsProps = {
   phone?: string | null;
-  email?: string | null;
   whatsapp?: string | null;
+  website?: string | null;
+  address?: string | null;
+  mapUrl?: string | null;
 };
 
-function cleanPhone(phone: string) {
-  return phone.replace(/[^\d+]/g, "");
-}
+export function ContactActions({
+  phone,
+  whatsapp,
+  website,
+  address,
+  mapUrl,
+}: ContactActionsProps) {
+  const cleanPhone = phone?.trim() || "";
+  const cleanWhatsapp = whatsapp?.trim() || cleanPhone;
+  const cleanWebsite = website?.trim() || "";
+  const directionsUrl =
+    mapUrl ||
+    (address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+      : "");
 
-export function ContactActions({ phone, email, whatsapp }: ContactActionsProps) {
-  const callPhone = phone ? cleanPhone(phone) : "";
-  const whatsappPhone = whatsapp || phone ? cleanPhone(whatsapp || phone || "") : "";
+  async function copyPhone() {
+    if (!cleanPhone) return;
+
+    await navigator.clipboard.writeText(cleanPhone);
+    trackCopyPhoneClick(cleanPhone);
+  }
+
+  async function shareBusiness() {
+    trackShareClick("Native Share");
+
+    if (navigator.share) {
+      await navigator.share({
+        title: document.title,
+        url: window.location.href,
+      });
+      return;
+    }
+
+    await navigator.clipboard.writeText(window.location.href);
+  }
 
   return (
-    <div className="flex flex-wrap gap-3">
-      {callPhone && (
+    <div className="flex flex-wrap gap-2">
+      {cleanPhone && (
         <a
-          href={`tel:${callPhone}`}
-          onClick={() =>
-            trackWebsiteEvent({
-              event_type: ANALYTICS_EVENTS.callClick,
-              label: ANALYTICS_LABELS.contactCall,
-              metadata: {
-                phone: callPhone,
-              },
-            })
-          }
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700"
+          href={`tel:${cleanPhone}`}
+          onClick={() => trackCallClick(cleanPhone)}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
         >
           <Phone className="h-4 w-4" />
           Call Now
         </a>
       )}
 
-      {whatsappPhone && (
+      {cleanWhatsapp && (
         <a
-          href={`https://wa.me/${whatsappPhone.replace("+", "")}`}
+          href={`https://wa.me/${cleanWhatsapp.replace(/[^\d]/g, "")}`}
           target="_blank"
           rel="noreferrer"
-          onClick={() =>
-            trackWebsiteEvent({
-              event_type: ANALYTICS_EVENTS.whatsappClick,
-              label: ANALYTICS_LABELS.contactWhatsApp,
-              metadata: {
-                phone: whatsappPhone,
-              },
-            })
-          }
-          className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700"
+          onClick={() => trackWhatsAppClick(cleanWhatsapp)}
+          className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
         >
+          <MessageCircle className="h-4 w-4" />
           WhatsApp
         </a>
       )}
 
-      {email && (
+      {directionsUrl && (
         <a
-          href={`mailto:${email}`}
-          className="inline-flex items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-medium hover:bg-slate-50"
+          href={directionsUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => trackMapClick("Directions Button")}
+          className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
         >
-          <Mail className="h-4 w-4" />
-          Email
+          <MapPin className="h-4 w-4" />
+          Directions
         </a>
       )}
+
+      {cleanWebsite && (
+        <a
+          href={cleanWebsite}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => trackWebsiteClick(cleanWebsite)}
+          className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Website
+        </a>
+      )}
+
+      {cleanPhone && (
+        <button
+          type="button"
+          onClick={copyPhone}
+          className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <Copy className="h-4 w-4" />
+          Copy Phone
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={shareBusiness}
+        className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+      >
+        <Share2 className="h-4 w-4" />
+        Share
+      </button>
     </div>
   );
 }
