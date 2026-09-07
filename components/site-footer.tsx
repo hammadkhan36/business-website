@@ -1,8 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import type { WebsiteBusiness } from "@/lib/website/business";
+import { trackWebsiteEvent } from "@/lib/website/analytics-client";
+import { ANALYTICS_EVENTS, ANALYTICS_LABELS } from "@/lib/website/analytics-events";
+
+function cleanPhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "");
+}
 
 export function SiteFooter({ business }: { business: WebsiteBusiness | null }) {
   const name = business?.business_name || "Business";
+  const phone = business?.contact_phone ? cleanPhone(business.contact_phone) : "";
 
   return (
     <footer className="border-t bg-slate-950 text-white">
@@ -27,8 +36,28 @@ export function SiteFooter({ business }: { business: WebsiteBusiness | null }) {
         <div>
           <h3 className="font-semibold">Contact</h3>
           <div className="mt-3 grid gap-2 text-sm text-slate-300">
-            {business?.contact_phone && <a href={`tel:${business.contact_phone}`}>{business.contact_phone}</a>}
-            {business?.contact_email && <a href={`mailto:${business.contact_email}`}>{business.contact_email}</a>}
+            {phone && (
+              <a
+                href={`tel:${phone}`}
+                onClick={() =>
+                  trackWebsiteEvent({
+                    event_type: ANALYTICS_EVENTS.callClick,
+                    label: ANALYTICS_LABELS.footerCall,
+                    metadata: {
+                      phone,
+                    },
+                  })
+                }
+              >
+                {business?.contact_phone}
+              </a>
+            )}
+
+            {business?.contact_email && (
+              <a href={`mailto:${business.contact_email}`}>
+                {business.contact_email}
+              </a>
+            )}
           </div>
         </div>
       </div>

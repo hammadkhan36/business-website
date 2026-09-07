@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { WebsiteBusiness } from "@/lib/website/business";
+import { TrackedBookLink } from "@/components/tracked-book-link";
 
 export function SiteHeader({ business }: { business: WebsiteBusiness | null }) {
   const name = business?.short_name || business?.business_name || "Business";
@@ -30,12 +31,7 @@ export function SiteHeader({ business }: { business: WebsiteBusiness | null }) {
           <Link href="/contact">Contact</Link>
         </nav>
 
-        <Link
-          href="/book"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white"
-        >
-          Book Now
-        </Link>
+       <TrackedBookLink />
       </div>
     </header>
   );
