@@ -2,50 +2,103 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendAnalyticsEvent } from "@/lib/website/analytics";
 
-const eventSchema = z.object({
-  event_type: z.enum([
-    "page_view",
-    "call_click",
-    "whatsapp_click",
-    "map_click",
-    "booking_click",
-    "lead_submit",
-    "appointment_submit",
-    "coupon_validate",
-    "coupon_redeem",
-    "review_submit",
-    "form_submit",
-  ]),
+const browserEventSchema = z.object({
+  event_type: z.string().trim().min(1),
   path: z.string().trim().min(1).max(500),
   label: z.string().trim().min(1).max(200).nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+
+  business_id: z.string().uuid().nullable().optional(),
+
   visitor_id: z.string().trim().min(1).max(100).nullable().optional(),
   session_id: z.string().trim().min(1).max(100).nullable().optional(),
-  referrer_domain: z.string().trim().min(1).max(255).nullable().optional(),
+
+  page_title: z.string().trim().max(300).nullable().optional(),
+  hostname: z.string().trim().max(255).nullable().optional(),
+  referrer_url: z.string().trim().max(1000).nullable().optional(),
+  referrer_domain: z.string().trim().max(255).nullable().optional(),
+
+  utm_source: z.string().trim().max(255).nullable().optional(),
+  utm_medium: z.string().trim().max(255).nullable().optional(),
+  utm_campaign: z.string().trim().max(255).nullable().optional(),
+  utm_term: z.string().trim().max(255).nullable().optional(),
+  utm_content: z.string().trim().max(255).nullable().optional(),
+
+  device_type: z.string().trim().max(50).nullable().optional(),
+  browser: z.string().trim().max(100).nullable().optional(),
+  os: z.string().trim().max(100).nullable().optional(),
+
+  screen_width: z.number().int().positive().nullable().optional(),
+  screen_height: z.number().int().positive().nullable().optional(),
+  viewport_width: z.number().int().positive().nullable().optional(),
+  viewport_height: z.number().int().positive().nullable().optional(),
+
+  language: z.string().trim().max(50).nullable().optional(),
+  timezone: z.string().trim().max(100).nullable().optional(),
+  engagement_ms: z.number().int().nonnegative().nullable().optional(),
+
+  service_id: z.string().uuid().nullable().optional(),
+  service_name: z.string().trim().max(255).nullable().optional(),
+
+  offer_id: z.string().uuid().nullable().optional(),
+  offer_title: z.string().trim().max(255).nullable().optional(),
+
+  form_id: z.string().uuid().nullable().optional(),
+  form_name: z.string().trim().max(255).nullable().optional(),
+
+  coupon_code: z.string().trim().max(100).nullable().optional(),
+
+  consent_status: z.enum(["accepted", "rejected", "unknown"]).optional(),
 });
 
-function fail(error: string, status: number) {
-  return NextResponse.json({ success: false, error }, { status });
+function hasSameOrigin(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return !origin || origin === request.nextUrl.origin;
 }
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-
-  if (origin && origin !== request.nextUrl.origin) {
-    return fail("Invalid request origin.", 403);
+  if (!hasSameOrigin(request)) {
+    return NextResponse.json(
+      { success: false, error: "Invalid origin." },
+      { status: 403 }
+    );
   }
 
   const json: unknown = await request.json().catch(() => null);
-  const parsed = eventSchema.safeParse(json);
+  const parsed = browserEventSchema.safeParse(json);
 
   if (!parsed.success) {
-    return fail("Invalid analytics event.", 400);
+    console.error("Website analytics validation error:", parsed.error.flatten());
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Invalid analytics event.",
+        details: parsed.error.flatten(),
+      },
+      { status: 400 }
+    );
   }
 
   try {
-    await sendAnalyticsEvent(parsed.data);
-    return NextResponse.json({ success: true });
-  } catch {
-    return fail("Analytics event could not be saved.", 502);
+    await sendAnalyticsEvent(
+      parsed.data as Parameters<typeof sendAnalyticsEvent>[0]
+    );
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown analytics error";
+
+    console.error("Website analytics proxy error:", message);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+      },
+      { status: 502 }
+    );
   }
 }
