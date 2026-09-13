@@ -1,15 +1,1 @@
-import type { MetadataRoute } from "next";
-import { absoluteUrl } from "@/lib/website/urls";
-import { websiteConfig } from "@/lib/website/config";
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  if (!websiteConfig.allowIndexing) return [];
-  // Add routes only when their UI exists and they return a public 200 page.
-  const staticPages = ["/"];
-
-  return staticPages.map((path) => ({
-    url: absoluteUrl(path),
-    changeFrequency: path === "/" ? "daily" : "weekly",
-    priority: path === "/" ? 1 : 0.7,
-  }));
-}
+import type {MetadataRoute} from "next";import {publicPaths,services,doctors} from "@/config/elements";export default function sitemap():MetadataRoute.Sitemap{if(process.env.NEXT_PUBLIC_ALLOW_INDEXING!=="true")return [];const base=process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3001";return [...publicPaths,...services.map(s=>`/services/${s.slug}`),...doctors.map(d=>`/meet-our-doctors/${d.slug}`)].map(path=>({url:new URL(path,base).href,changeFrequency:"monthly",priority:path==='/'?1:.7}))}

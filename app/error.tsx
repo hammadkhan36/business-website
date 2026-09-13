@@ -1,0 +1,1 @@
+"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <section className="section wrap"><h1>We couldn’t load this page.</h1><p>Please try again, or call (714) 716-1155 for help.</p><button className="btn" onClick={reset}>Try again</button></section>}

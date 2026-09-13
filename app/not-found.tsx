@@ -1,0 +1,1 @@
+import Link from "next/link";import {PageIntro} from "@/components/elements/shell";export default function NotFound(){return <><PageIntro eyebrow="404" title="Let’s get you back to familiar ground." description="This page could not be found."/><div className="section wrap"><Link className="btn" href="/">Back to home ↗</Link></div></>}
