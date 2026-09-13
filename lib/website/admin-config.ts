@@ -20,7 +20,9 @@ const configSchema = z.object({
   service_areas: z.array(z.object({ id: z.string(), area_name: z.string(), city: z.string().nullable(), sort_order: z.number() })),
   faqs: z.array(z.object({ id: z.string(), question: z.string(), answer: z.string(), sort_order: z.number() })),
   offers: z.array(z.object({ id: z.string(), title: z.string(), description: z.string().nullable(), discount_label: z.string().nullable(), starts_at: z.string().nullable(), ends_at: z.string().nullable(), cta_label: z.string().nullable(), cta_url: z.string().nullable(), image_url: z.string().nullable(), sort_order: z.number() })),
-  business_hours: z.array(z.object({ day_of_week: z.number(), day_name: z.string(), opens_at: z.string().nullable(), closes_at: z.string().nullable(), is_closed: z.boolean(), is_24h: z.boolean() })),
+  business_hours: z.array(z.object({ day_of_week: z.number(), day_name: z.string(), opens_at: z.string().nullable(), closes_at: z.string().nullable(), is_closed: z.boolean(), is_24h: z.boolean(), break_starts_at:z.string().nullable().optional(),break_ends_at:z.string().nullable().optional() })),
+  forms: z.array(z.object({id:z.string(),name:z.string(),slug:z.string(),description:z.string().nullable(),fields:z.array(z.object({name:z.string(),label:z.string(),type:z.string(),required:z.boolean().optional(),options:z.array(z.string()).optional()}))})).default([]),
+  reviews: z.array(z.object({id:z.string(),customer_name:z.string(),rating:z.number(),title:z.string().nullable(),comment:z.string(),source:z.string(),created_at:z.string()})).default([]),
   seo: z.object({
     default_meta_title: z.string().nullable(),
     default_meta_description: z.string().nullable(),

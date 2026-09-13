@@ -1,60 +1,7 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import {
-  getAnalyticsConsent,
-  setAnalyticsConsent,
-  trackWebsiteEvent,
-} from "@/lib/website/analytics-client";
-
-export function AnalyticsConsentBanner() {
-  const [showBanner, setShowBanner] = useState(false);
-
-  useEffect(() => {
-    setShowBanner(getAnalyticsConsent() === "unknown");
-  }, []);
-
-  if (!showBanner) return null;
-
-  return (
-    <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-lg border bg-background p-4 shadow-lg">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium">Website experience tracking</p>
-          <p className="text-xs text-muted-foreground">
-            We use basic analytics to understand visits, clicks and form activity.
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
-            onClick={() => {
-              setAnalyticsConsent("rejected");
-              setShowBanner(false);
-            }}
-          >
-            Reject
-          </button>
-
-          <button
-            type="button"
-            className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground"
-            onClick={() => {
-              setAnalyticsConsent("accepted");
-              setShowBanner(false);
-
-              trackWebsiteEvent({
-                event_type: "page_view",
-                label: "Consent Accepted",
-              });
-            }}
-          >
-            Accept
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import {useSyncExternalStore} from "react";
+import {getAnalyticsConsent,setAnalyticsConsent} from "@/lib/website/analytics-client";
+function subscribe(notify:()=>void){window.addEventListener("analytics-consent",notify);window.addEventListener("storage",notify);return()=>{window.removeEventListener("analytics-consent",notify);window.removeEventListener("storage",notify)}}
+const serverSnapshot=()=>"unknown" as const;
+export function ConsentPreferences(){const status=useSyncExternalStore(subscribe,getAnalyticsConsent,serverSnapshot);return <div><p>Optional analytics: {status==="accepted"?"on":"off"}.</p><div className="button-row"><button className="btn outline" onClick={()=>setAnalyticsConsent("rejected")}>Decline analytics</button><button className="btn" onClick={()=>setAnalyticsConsent("accepted")}>Accept analytics</button></div></div>}
+export function AnalyticsConsentBanner(){const status=useSyncExternalStore(subscribe,getAnalyticsConsent,serverSnapshot);if(status!=="unknown")return null;return <aside className="consent-banner" aria-label="Analytics choices"><div><strong>Your choice. Your privacy.</strong><p>Allow optional visit and click analytics? Forms work either way. <a href="/privacy">Privacy details</a></p></div><div className="button-row"><button className="btn outline small" onClick={()=>setAnalyticsConsent("rejected")}>Decline</button><button className="btn small" onClick={()=>setAnalyticsConsent("accepted")}>Accept analytics</button></div></aside>}

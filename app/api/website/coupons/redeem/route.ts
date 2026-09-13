@@ -1,14 +1,1 @@
-import { NextRequest, NextResponse } from "next/server";
-import { postAdminApi } from "@/lib/website/public-api";
-
-export async function POST(request: NextRequest) {
-  const body: unknown = await request.json().catch(() => null);
-
-  const result = await postAdminApi({
-    path: "/api/public/coupons/redeem",
-    apiKey: process.env.WEBSITE_CONFIG_API_KEY,
-    body,
-  });
-
-  return NextResponse.json(result.data, { status: result.status });
-}
+export async function POST(){return Response.json({success:false,error:"Please ask the office to apply your coupon when your treatment is confirmed."},{status:403})}

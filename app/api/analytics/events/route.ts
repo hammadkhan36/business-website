@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import {requireElementsConnection} from "@/lib/website/elements-data";
 import { sendAnalyticsEvent } from "@/lib/website/analytics";
 
 const browserEventSchema = z.object({
@@ -80,7 +81,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if(parsed.data.consent_status!=="accepted")return NextResponse.json({success:true,skipped:true});
+  parsed.data.metadata={};parsed.data.referrer_url=null;parsed.data.path=parsed.data.path.split(/[?#]/)[0];
   try {
+    await requireElementsConnection();
     await sendAnalyticsEvent(
       parsed.data as Parameters<typeof sendAnalyticsEvent>[0]
     );
@@ -96,7 +100,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: message,
+        error: "Analytics temporarily unavailable.",
       },
       { status: 502 }
     );

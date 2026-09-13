@@ -61,7 +61,8 @@ const CONSENT_KEY = "website_analytics_consent";
 function getConsentStatus(): ConsentStatus {
   if (typeof window === "undefined") return "unknown";
 
-  const saved = window.localStorage.getItem(CONSENT_KEY);
+  let saved: string | null = null;
+  try { saved = window.localStorage.getItem(CONSENT_KEY); } catch { return "unknown"; }
 
   if (saved === "accepted" || saved === "rejected") {
     return saved;
@@ -72,7 +73,10 @@ function getConsentStatus(): ConsentStatus {
 
 export function setAnalyticsConsent(value: ConsentStatus) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(CONSENT_KEY, value);
+  try { window.localStorage.setItem(CONSENT_KEY, value);
+    if(value !== "accepted"){window.localStorage.removeItem(VISITOR_KEY);window.sessionStorage.removeItem(SESSION_KEY);window.sessionStorage.removeItem(SESSION_STARTED_KEY);}
+  } catch { /* Storage may be blocked. Tracking stays off. */ }
+  window.dispatchEvent(new Event("analytics-consent"));
 }
 
 export function getAnalyticsConsent() {
@@ -81,7 +85,7 @@ export function getAnalyticsConsent() {
 
 function shouldTrack() {
   const consent = getConsentStatus();
-  return consent !== "rejected";
+  return consent === "accepted";
 }
 
 function getOrCreateId(storage: Storage, key: string) {
@@ -142,14 +146,15 @@ function getOS() {
 }
 
 function getCurrentPath() {
-  return `${window.location.pathname}${window.location.search}`;
+  return window.location.pathname;
 }
 
 export function trackWebsiteEvent(input: TrackWebsiteEventInput) {
   if (typeof window === "undefined") return;
   if (!shouldTrack()) return;
 
-  const path = input.path || getCurrentPath();
+  try {
+  const path = (input.path || getCurrentPath()).split(/[?#]/)[0];
   const visitorId = getOrCreateId(window.localStorage, VISITOR_KEY);
   const sessionId = getOrCreateId(window.sessionStorage, SESSION_KEY);
 
@@ -162,7 +167,7 @@ export function trackWebsiteEvent(input: TrackWebsiteEventInput) {
       event_type: input.event_type,
       path,
       label: input.label ?? null,
-      metadata: input.metadata ?? {},
+      metadata: {}, // Never forward free-form data into patient-website analytics.
 
       business_id: input.business_id ?? process.env.NEXT_PUBLIC_BUSINESS_ID ?? null,
 
@@ -171,7 +176,7 @@ export function trackWebsiteEvent(input: TrackWebsiteEventInput) {
 
       page_title: document.title || null,
       hostname: window.location.hostname,
-      referrer_url: document.referrer || null,
+      referrer_url: null,
       referrer_domain: getReferrerDomain(),
 
       utm_source: getUtmValue("utm_source"),
@@ -209,11 +214,14 @@ export function trackWebsiteEvent(input: TrackWebsiteEventInput) {
   }).catch(() => {
     // Analytics should never break the website experience.
   });
+  } catch { /* Storage unavailable: do not track. */ }
 }
 
 export function trackSessionStart() {
   if (typeof window === "undefined") return;
 
+  if (!shouldTrack()) return;
+  try {
   const alreadyStarted = window.sessionStorage.getItem(SESSION_STARTED_KEY);
 
   if (alreadyStarted) return;
@@ -224,6 +232,7 @@ export function trackSessionStart() {
     event_type: "session_start",
     label: "Session Started",
   });
+  } catch { /* Storage unavailable. */ }
 }
 
 export function trackEngagement(engagementMs: number) {

@@ -1,14 +1,1 @@
-import { NextRequest, NextResponse } from "next/server";
-import { postAdminApi } from "@/lib/website/public-api";
-
-export async function POST(request: NextRequest) {
-  const body: unknown = await request.json().catch(() => null);
-
-  const result = await postAdminApi({
-    path: "/api/public/coupons/validate",
-    apiKey: process.env.WEBSITE_CONFIG_API_KEY,
-    body,
-  });
-
-  return NextResponse.json(result.data, { status: result.status });
-}
+import {NextRequest} from "next/server";import {handleForm} from "@/lib/website/form-proxy";export async function POST(request:NextRequest){return handleForm(request,"coupon");}
