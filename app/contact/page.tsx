@@ -1,215 +1,116 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  CalendarCheck,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Phone,
-  Send,
-} from "lucide-react";
-import { getDentistConfig } from "@/lib/website/dentist-config";
+  business,
+  contactLinks,
+} from "@/content/business";
+import { contactContent } from "@/content/contact";
+import { PageFrame } from "@/components/website/page-frame";
 
 export const metadata: Metadata = {
-  title: "Contact Dental Care Clinic | Book a Dentist Appointment",
-  description:
-    "Contact the dental clinic, call, WhatsApp, get directions or request an appointment online.",
+  title: `${contactContent.metadata.title} | ${business.name}`,
+  description: `${contactContent.metadata.description} ${business.city}, ${business.country}.`,
 };
 
+const cardClass =
+  "rounded-2xl border border-stone-200 bg-white p-6 shadow-sm";
+
+const actionClass =
+  "mt-6 inline-flex rounded-full bg-teal-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-800";
+
 export default function ContactPage() {
-  const config = getDentistConfig();
-
-  const phone = config.emergency.phoneFallback;
-  const whatsappNumber = phone.replace(/[^\d]/g, "");
-  const mapUrl = "https://www.google.com/maps/search/?api=1&query=dental+clinic";
-
   return (
-    <main>
-      <section className="border-b bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-16">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-              Contact
-            </p>
+    <PageFrame>
+      <section className="border-b border-stone-200 bg-teal-50">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+          <p className="text-sm font-semibold uppercase tracking-widest text-teal-800">
+            {contactContent.eyebrow}
+          </p>
 
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">
-              Contact the clinic or request your appointment.
-            </h1>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
+            {contactContent.heading}
+          </h1>
 
-            <p className="mt-5 text-base leading-7 text-slate-600 md:text-lg">
-              Ye contact page conversion-focused hai. Call, WhatsApp, map aur
-              appointment buttons tracking ke liye ready hain.
-            </p>
-          </div>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+            {contactContent.introduction}
+          </p>
         </div>
       </section>
 
-      <section className="bg-white py-16">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-[0.9fr_1.1fr] md:px-6 lg:px-8">
-          <div className="space-y-4">
-            <a
-              href={`tel:${phone}`}
-              data-track-event="call_click"
-              data-track-label="Contact Page Call"
-              className="flex items-start gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:bg-slate-50"
-            >
-              <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                <Phone className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-950">Call Clinic</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{phone}</p>
-              </div>
-            </a>
+      <section
+        aria-label="Contact details"
+        className="mx-auto grid max-w-6xl gap-6 px-5 py-12 md:grid-cols-2"
+      >
+        <article className={cardClass}>
+          <h2 className="text-xl font-semibold">
+            {contactContent.phone.title}
+          </h2>
 
-            <a
-              href={`https://wa.me/${whatsappNumber}`}
-              data-track-event="whatsapp_click"
-              data-track-label="Contact Page WhatsApp"
-              className="flex items-start gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:bg-slate-50"
-            >
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-950">WhatsApp</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Send a quick message to the clinic.
-                </p>
-              </div>
-            </a>
+          <p className="mt-3 leading-7 text-slate-600">
+            {contactContent.phone.description}
+          </p>
 
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noreferrer"
-              data-track-event="map_click"
-              data-track-label="Contact Page Map"
-              className="flex items-start gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:bg-slate-50"
-            >
-              <div className="rounded-2xl bg-cyan-50 p-3 text-cyan-600">
-                <MapPin className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-950">Get Directions</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Open clinic location in Google Maps.
-                </p>
-              </div>
-            </a>
+          <p className="mt-4 text-xl font-semibold text-teal-900">
+            {business.displayPhone}
+          </p>
 
-            <Link
-              href="/book-appointment"
-              data-track-event="booking_click"
-              data-track-label="Contact Page Book Appointment"
-              className="flex items-start gap-4 rounded-2xl border bg-blue-600 p-5 text-white shadow-sm transition hover:bg-blue-700"
-            >
-              <div className="rounded-2xl bg-white/15 p-3">
-                <CalendarCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold">Book Appointment</h2>
-                <p className="mt-1 text-sm text-blue-100">
-                  Request your dental appointment online.
-                </p>
-              </div>
-            </Link>
-          </div>
+          <a href={contactLinks.phone} className={actionClass}>
+            {contactContent.phone.action}
+          </a>
+        </article>
 
-          <div className="rounded-[2rem] border bg-slate-50 p-6 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-950">
-                Send an inquiry
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Next step mein is form ko admin panel ki Leads API se connect
-                karenge. Abhi structure ready kar rahe hain.
-              </p>
-            </div>
+        <article className={cardClass}>
+          <h2 className="text-xl font-semibold">
+            {contactContent.email.title}
+          </h2>
 
-            <form className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="Your name"
-                    className="h-11 w-full rounded-xl border bg-white px-3 text-sm outline-none ring-blue-600/20 transition focus:ring-4"
-                  />
-                </div>
+          <p className="mt-3 leading-7 text-slate-600">
+            {contactContent.email.description}
+          </p>
 
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Phone
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="Phone number"
-                    className="h-11 w-full rounded-xl border bg-white px-3 text-sm outline-none ring-blue-600/20 transition focus:ring-4"
-                  />
-                </div>
-              </div>
+          <p className="mt-4 break-all font-semibold text-teal-900">
+            {business.email}
+          </p>
 
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Email address"
-                    className="h-11 w-full rounded-xl border bg-white px-10 text-sm outline-none ring-blue-600/20 transition focus:ring-4"
-                  />
-                </div>
-              </div>
+          <a href={contactLinks.email} className={actionClass}>
+            {contactContent.email.action}
+          </a>
+        </article>
 
-              <div>
-                <label
-                  htmlFor="message"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  placeholder="How can we help?"
-                  className="w-full resize-none rounded-xl border bg-white px-3 py-3 text-sm outline-none ring-blue-600/20 transition focus:ring-4"
-                />
-              </div>
+        <article className={cardClass}>
+          <h2 className="text-xl font-semibold">
+            {contactContent.location.title}
+          </h2>
 
-              <button
-                type="button"
-                data-track-event="form_start"
-                data-track-label="Contact Inquiry Placeholder"
-                className="inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Send Inquiry
-              </button>
-            </form>
-          </div>
-        </div>
+          <p className="mt-3 leading-7 text-slate-600">
+            {contactContent.location.description}
+          </p>
+
+          <address className="mt-4 not-italic leading-7">
+            {business.address}
+          </address>
+
+          <a
+            href={contactLinks.directions}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={actionClass}
+          >
+            {contactContent.location.action} ↗
+          </a>
+        </article>
+
+        <article className="rounded-2xl bg-teal-950 p-6 text-white">
+          <h2 className="text-xl font-semibold">
+            {contactContent.visit.title}
+          </h2>
+
+          <ul className="mt-5 list-disc space-y-4 pl-5 leading-7 text-teal-100">
+            {contactContent.visit.points.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        </article>
       </section>
-    </main>
+    </PageFrame>
   );
 }
