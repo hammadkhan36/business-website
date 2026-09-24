@@ -5,6 +5,9 @@ import {
 } from "@/content/business";
 import { contactContent } from "@/content/contact";
 import { PageFrame } from "@/components/website/page-frame";
+import { InquiryForm } from "@/components/website/inquiry-form";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: `${contactContent.metadata.title} | ${business.name}`,
@@ -15,9 +18,16 @@ const cardClass =
   "rounded-2xl border border-stone-200 bg-white p-6 shadow-sm";
 
 const actionClass =
-  "mt-6 inline-flex rounded-full bg-teal-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-800";
+  "mt-6 inline-flex rounded-full bg-teal-800 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-950";
 
 export default function ContactPage() {
+  const formEnabled = Boolean(
+    process.env.LEAD_FORM_ENABLED === "true" &&
+    process.env.ADMIN_API_URL &&
+    process.env.WEBSITE_LEAD_API_KEY &&
+    process.env.NEXT_PUBLIC_SITE_URL
+  );
+
   return (
     <PageFrame>
       <section className="border-b border-stone-200 bg-teal-50">
@@ -25,11 +35,9 @@ export default function ContactPage() {
           <p className="text-sm font-semibold uppercase tracking-widest text-teal-800">
             {contactContent.eyebrow}
           </p>
-
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">
             {contactContent.heading}
           </h1>
-
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
             {contactContent.introduction}
           </p>
@@ -44,15 +52,12 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold">
             {contactContent.phone.title}
           </h2>
-
           <p className="mt-3 leading-7 text-slate-600">
             {contactContent.phone.description}
           </p>
-
           <p className="mt-4 text-xl font-semibold text-teal-900">
             {business.displayPhone}
           </p>
-
           <a href={contactLinks.phone} className={actionClass}>
             {contactContent.phone.action}
           </a>
@@ -62,15 +67,12 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold">
             {contactContent.email.title}
           </h2>
-
           <p className="mt-3 leading-7 text-slate-600">
             {contactContent.email.description}
           </p>
-
           <p className="mt-4 break-all font-semibold text-teal-900">
             {business.email}
           </p>
-
           <a href={contactLinks.email} className={actionClass}>
             {contactContent.email.action}
           </a>
@@ -80,15 +82,12 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold">
             {contactContent.location.title}
           </h2>
-
           <p className="mt-3 leading-7 text-slate-600">
             {contactContent.location.description}
           </p>
-
           <address className="mt-4 not-italic leading-7">
             {business.address}
           </address>
-
           <a
             href={contactLinks.directions}
             target="_blank"
@@ -103,7 +102,6 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold">
             {contactContent.visit.title}
           </h2>
-
           <ul className="mt-5 list-disc space-y-4 pl-5 leading-7 text-teal-100">
             {contactContent.visit.points.map((point) => (
               <li key={point}>{point}</li>
@@ -111,6 +109,10 @@ export default function ContactPage() {
           </ul>
         </article>
       </section>
+
+      <div className="mx-auto max-w-3xl px-5 pb-8">
+        <InquiryForm enabled={formEnabled} />
+      </div>
     </PageFrame>
   );
 }
