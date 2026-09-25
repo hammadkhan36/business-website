@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   getAnalyticsConsent,
   setAnalyticsConsent,
-  trackWebsiteEvent,
 } from "@/lib/website/analytics-client";
 
 export function AnalyticsConsentBanner() {
@@ -20,9 +19,12 @@ export function AnalyticsConsentBanner() {
     <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-lg border bg-background p-4 shadow-lg">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium">Website experience tracking</p>
+          <p className="text-sm font-medium">
+            Website experience tracking
+          </p>
           <p className="text-xs text-muted-foreground">
-            We use basic analytics to understand visits, clicks and form activity.
+            We use basic analytics to understand visits,
+            clicks and form activity.
           </p>
         </div>
 
@@ -44,11 +46,6 @@ export function AnalyticsConsentBanner() {
             onClick={() => {
               setAnalyticsConsent("accepted");
               setShowBanner(false);
-
-              trackWebsiteEvent({
-                event_type: "page_view",
-                label: "Consent Accepted",
-              });
             }}
           >
             Accept
