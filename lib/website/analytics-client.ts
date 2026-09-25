@@ -61,7 +61,13 @@ const CONSENT_KEY = "website_analytics_consent";
 function getConsentStatus(): ConsentStatus {
   if (typeof window === "undefined") return "unknown";
 
-  const saved = window.localStorage.getItem(CONSENT_KEY);
+  let saved: string | null;
+
+  try {
+    saved = window.localStorage.getItem(CONSENT_KEY);
+  } catch {
+    return "unknown";
+  }
 
   if (saved === "accepted" || saved === "rejected") {
     return saved;
@@ -72,7 +78,22 @@ function getConsentStatus(): ConsentStatus {
 
 export function setAnalyticsConsent(value: ConsentStatus) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(CONSENT_KEY, value);
+
+  try {
+    window.localStorage.setItem(CONSENT_KEY, value);
+
+    if (value !== "accepted") {
+      window.localStorage.removeItem(VISITOR_KEY);
+      window.sessionStorage.removeItem(SESSION_KEY);
+      window.sessionStorage.removeItem(SESSION_STARTED_KEY);
+    }
+  } catch {
+    // Storage may be unavailable.
+  }
+
+  window.dispatchEvent(
+    new Event("website-analytics-consent-change")
+  );
 }
 
 export function getAnalyticsConsent() {
@@ -80,8 +101,7 @@ export function getAnalyticsConsent() {
 }
 
 function shouldTrack() {
-  const consent = getConsentStatus();
-  return consent !== "rejected";
+  return getConsentStatus() === "accepted";
 }
 
 function getOrCreateId(storage: Storage, key: string) {
@@ -123,7 +143,9 @@ function getBrowser() {
 
   if (ua.includes("Edg/")) return "Edge";
   if (ua.includes("Chrome/")) return "Chrome";
-  if (ua.includes("Safari/") && !ua.includes("Chrome/")) return "Safari";
+  if (ua.includes("Safari/") && !ua.includes("Chrome/")) {
+    return "Safari";
+  }
   if (ua.includes("Firefox/")) return "Firefox";
 
   return "Other";
@@ -149,81 +171,91 @@ export function trackWebsiteEvent(input: TrackWebsiteEventInput) {
   if (typeof window === "undefined") return;
   if (!shouldTrack()) return;
 
-  const path = input.path || getCurrentPath();
-  const visitorId = getOrCreateId(window.localStorage, VISITOR_KEY);
-  const sessionId = getOrCreateId(window.sessionStorage, SESSION_KEY);
+  try {
+    const path = (input.path || getCurrentPath()).split(/[?#]/)[0];
+    const visitorId = getOrCreateId(window.localStorage, VISITOR_KEY);
+    const sessionId = getOrCreateId(window.sessionStorage, SESSION_KEY);
 
-  void fetch("/api/analytics/events", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      event_type: input.event_type,
-      path,
-      label: input.label ?? null,
-      metadata: input.metadata ?? {},
+    void fetch("/api/analytics/events", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        event_type: input.event_type,
+        path,
+        label: input.label ?? null,
+        metadata: input.metadata ?? {},
 
-      business_id: input.business_id ?? process.env.NEXT_PUBLIC_BUSINESS_ID ?? null,
+        business_id:
+          input.business_id ??
+          process.env.NEXT_PUBLIC_BUSINESS_ID ??
+          null,
 
-      visitor_id: visitorId,
-      session_id: sessionId,
+        visitor_id: visitorId,
+        session_id: sessionId,
 
-      page_title: document.title || null,
-      hostname: window.location.hostname,
-      referrer_url: document.referrer || null,
-      referrer_domain: getReferrerDomain(),
+        page_title: document.title || null,
+        hostname: window.location.hostname,
+        referrer_url: document.referrer || null,
+        referrer_domain: getReferrerDomain(),
 
-      utm_source: getUtmValue("utm_source"),
-      utm_medium: getUtmValue("utm_medium"),
-      utm_campaign: getUtmValue("utm_campaign"),
-      utm_term: getUtmValue("utm_term"),
-      utm_content: getUtmValue("utm_content"),
+        utm_source: getUtmValue("utm_source"),
+        utm_medium: getUtmValue("utm_medium"),
+        utm_campaign: getUtmValue("utm_campaign"),
+        utm_term: getUtmValue("utm_term"),
+        utm_content: getUtmValue("utm_content"),
 
-      device_type: getDeviceType(),
-      browser: getBrowser(),
-      os: getOS(),
+        device_type: getDeviceType(),
+        browser: getBrowser(),
+        os: getOS(),
 
-      screen_width: window.screen.width,
-      screen_height: window.screen.height,
-      viewport_width: window.innerWidth,
-      viewport_height: window.innerHeight,
+        screen_width: window.screen.width,
+        screen_height: window.screen.height,
+        viewport_width: window.innerWidth,
+        viewport_height: window.innerHeight,
 
-      language: navigator.language || null,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-      engagement_ms: input.engagement_ms ?? null,
+        language: navigator.language || null,
+        timezone:
+          Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+        engagement_ms: input.engagement_ms ?? null,
 
-      service_id: input.service_id ?? null,
-      service_name: input.service_name ?? null,
-
-      offer_id: input.offer_id ?? null,
-      offer_title: input.offer_title ?? null,
-
-      form_id: input.form_id ?? null,
-      form_name: input.form_name ?? null,
-
-      coupon_code: input.coupon_code ?? null,
-      consent_status: getConsentStatus(),
-    }),
-    keepalive: true,
-  }).catch(() => {
-    // Analytics should never break the website experience.
-  });
+        service_id: input.service_id ?? null,
+        service_name: input.service_name ?? null,
+        offer_id: input.offer_id ?? null,
+        offer_title: input.offer_title ?? null,
+        form_id: input.form_id ?? null,
+        form_name: input.form_name ?? null,
+        coupon_code: input.coupon_code ?? null,
+        consent_status: getConsentStatus(),
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Analytics should never break the website experience.
+    });
+  } catch {
+    // Storage or serialization must not break the page.
+  }
 }
 
 export function trackSessionStart() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !shouldTrack()) return;
 
-  const alreadyStarted = window.sessionStorage.getItem(SESSION_STARTED_KEY);
+  try {
+    const alreadyStarted =
+      window.sessionStorage.getItem(SESSION_STARTED_KEY);
 
-  if (alreadyStarted) return;
+    if (alreadyStarted) return;
 
-  window.sessionStorage.setItem(SESSION_STARTED_KEY, "true");
+    window.sessionStorage.setItem(SESSION_STARTED_KEY, "true");
 
-  trackWebsiteEvent({
-    event_type: "session_start",
-    label: "Session Started",
-  });
+    trackWebsiteEvent({
+      event_type: "session_start",
+      label: "Session Started",
+    });
+  } catch {
+    // Storage may be unavailable.
+  }
 }
 
 export function trackEngagement(engagementMs: number) {
@@ -242,7 +274,10 @@ export function trackSessionEnd(engagementMs: number) {
   });
 }
 
-export function trackCallClick(phone?: string | null, label = "Call Button") {
+export function trackCallClick(
+  phone?: string | null,
+  label = "Call Button"
+) {
   trackWebsiteEvent({
     event_type: "call_click",
     label,
@@ -250,7 +285,10 @@ export function trackCallClick(phone?: string | null, label = "Call Button") {
   });
 }
 
-export function trackWhatsAppClick(phone?: string | null, label = "WhatsApp Button") {
+export function trackWhatsAppClick(
+  phone?: string | null,
+  label = "WhatsApp Button"
+) {
   trackWebsiteEvent({
     event_type: "whatsapp_click",
     label,
@@ -265,7 +303,10 @@ export function trackMapClick(label = "Map Directions") {
   });
 }
 
-export function trackBookingClick(serviceId?: string | null, serviceName?: string | null) {
+export function trackBookingClick(
+  serviceId?: string | null,
+  serviceName?: string | null
+) {
   trackWebsiteEvent({
     event_type: "booking_click",
     label: "Booking Button",
@@ -282,7 +323,10 @@ export function trackWebsiteClick(url?: string | null) {
   });
 }
 
-export function trackSocialClick(platform: string, url?: string | null) {
+export function trackSocialClick(
+  platform: string,
+  url?: string | null
+) {
   trackWebsiteEvent({
     event_type: "social_click",
     label: platform,
@@ -306,7 +350,10 @@ export function trackCopyPhoneClick(phone?: string | null) {
   });
 }
 
-export function trackServiceView(serviceId?: string | null, serviceName?: string | null) {
+export function trackServiceView(
+  serviceId?: string | null,
+  serviceName?: string | null
+) {
   trackWebsiteEvent({
     event_type: "service_view",
     label: serviceName || "Service Viewed",
@@ -315,7 +362,10 @@ export function trackServiceView(serviceId?: string | null, serviceName?: string
   });
 }
 
-export function trackServiceClick(serviceId?: string | null, serviceName?: string | null) {
+export function trackServiceClick(
+  serviceId?: string | null,
+  serviceName?: string | null
+) {
   trackWebsiteEvent({
     event_type: "service_click",
     label: serviceName || "Service Clicked",
@@ -324,7 +374,10 @@ export function trackServiceClick(serviceId?: string | null, serviceName?: strin
   });
 }
 
-export function trackOfferView(offerId?: string | null, offerTitle?: string | null) {
+export function trackOfferView(
+  offerId?: string | null,
+  offerTitle?: string | null
+) {
   trackWebsiteEvent({
     event_type: "offer_view",
     label: offerTitle || "Offer Viewed",
@@ -333,7 +386,10 @@ export function trackOfferView(offerId?: string | null, offerTitle?: string | nu
   });
 }
 
-export function trackOfferClick(offerId?: string | null, offerTitle?: string | null) {
+export function trackOfferClick(
+  offerId?: string | null,
+  offerTitle?: string | null
+) {
   trackWebsiteEvent({
     event_type: "offer_click",
     label: offerTitle || "Offer Clicked",
@@ -350,7 +406,9 @@ export function trackLeadFormStart(formName = "Lead Form") {
   });
 }
 
-export function trackLeadSubmit(metadata?: Record<string, unknown>) {
+export function trackLeadSubmit(
+  metadata?: Record<string, unknown>
+) {
   trackWebsiteEvent({
     event_type: "lead_submit",
     label: "Lead Form Submitted",
@@ -358,7 +416,10 @@ export function trackLeadSubmit(metadata?: Record<string, unknown>) {
   });
 }
 
-export function trackLeadFormError(error: string, formName = "Lead Form") {
+export function trackLeadFormError(
+  error: string,
+  formName = "Lead Form"
+) {
   trackWebsiteEvent({
     event_type: "lead_form_error",
     label: formName,
@@ -375,7 +436,9 @@ export function trackLeadFormAbandon(formName = "Lead Form") {
   });
 }
 
-export function trackAppointmentFormStart(formName = "Appointment Form") {
+export function trackAppointmentFormStart(
+  formName = "Appointment Form"
+) {
   trackWebsiteEvent({
     event_type: "appointment_form_start",
     label: formName,
@@ -383,7 +446,9 @@ export function trackAppointmentFormStart(formName = "Appointment Form") {
   });
 }
 
-export function trackAppointmentSubmit(metadata?: Record<string, unknown>) {
+export function trackAppointmentSubmit(
+  metadata?: Record<string, unknown>
+) {
   trackWebsiteEvent({
     event_type: "appointment_submit",
     label: "Appointment Form Submitted",
@@ -391,7 +456,10 @@ export function trackAppointmentSubmit(metadata?: Record<string, unknown>) {
   });
 }
 
-export function trackAppointmentFormError(error: string, formName = "Appointment Form") {
+export function trackAppointmentFormError(
+  error: string,
+  formName = "Appointment Form"
+) {
   trackWebsiteEvent({
     event_type: "appointment_form_error",
     label: formName,
@@ -400,7 +468,9 @@ export function trackAppointmentFormError(error: string, formName = "Appointment
   });
 }
 
-export function trackAppointmentFormAbandon(formName = "Appointment Form") {
+export function trackAppointmentFormAbandon(
+  formName = "Appointment Form"
+) {
   trackWebsiteEvent({
     event_type: "appointment_form_abandon",
     label: formName,
@@ -408,7 +478,10 @@ export function trackAppointmentFormAbandon(formName = "Appointment Form") {
   });
 }
 
-export function trackCustomFormStart(formId?: string | null, formName?: string | null) {
+export function trackCustomFormStart(
+  formId?: string | null,
+  formName?: string | null
+) {
   trackWebsiteEvent({
     event_type: "custom_form_start",
     label: formName || "Custom Form Started",
@@ -445,7 +518,10 @@ export function trackCustomFormError(
   });
 }
 
-export function trackCustomFormAbandon(formName?: string | null, formId?: string | null) {
+export function trackCustomFormAbandon(
+  formName?: string | null,
+  formId?: string | null
+) {
   trackWebsiteEvent({
     event_type: "custom_form_abandon",
     label: formName || "Custom Form Abandoned",
@@ -477,7 +553,9 @@ export function trackReviewFormStart() {
   });
 }
 
-export function trackReviewSubmit(metadata?: Record<string, unknown>) {
+export function trackReviewSubmit(
+  metadata?: Record<string, unknown>
+) {
   trackWebsiteEvent({
     event_type: "review_submit",
     label: "Review Submitted",
@@ -491,4 +569,4 @@ export function trackReviewFormError(error: string) {
     label: "Review Form Error",
     metadata: { error },
   });
-}
+    }
