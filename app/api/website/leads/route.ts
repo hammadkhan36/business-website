@@ -106,16 +106,18 @@ export async function POST(request: NextRequest) {
     return fail("Enter a valid email address.", 400);
   }
 
-  if (message.length > 2000 || service.length > 150) {
-    return fail("Enquiry text is too long.", 400);
+  if (
+    message.length < 5 ||
+    message.length > 2000 ||
+    service.length > 150
+  ) {
+    return fail(
+      "Message must be 5–2000 characters; service must be at most 150.",
+      400
+    );
   }
 
-  // Other existing lead forms may omit this field.
-  // If provided, it must explicitly be true.
-  if (
-    "contact_permission" in body &&
-    body.contact_permission !== true
-  ) {
+  if (body.contact_permission !== true) {
     return fail("Contact permission is required.", 400);
   }
 
@@ -127,7 +129,6 @@ export async function POST(request: NextRequest) {
       const url = new URL(suppliedPage, siteOrigin);
 
       if (url.origin === siteOrigin) {
-        // Do not forward query strings or URL fragments.
         pageUrl = `${siteOrigin}${url.pathname}`;
       }
     } catch {
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
         name,
         phone,
         email: email || undefined,
-        message: message || undefined,
+        message,
         service: service || undefined,
         page_url: pageUrl,
       },
@@ -172,4 +173,4 @@ export async function POST(request: NextRequest) {
   } catch {
     return fail("We could not confirm your submission.", 502);
   }
-      }
+}
