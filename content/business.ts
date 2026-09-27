@@ -36,6 +36,7 @@ export const navigation = [
   { label: "About", href: "/about" },
   { label: "Treatments", href: "/services" },
   { label: "FAQs", href: "/faq" },
+  { label: "Book appointment", href: "/book-appointment" },
   { label: "Contact", href: "/contact" },
 ];
 
