@@ -1,3 +1,4 @@
+import { getContactConfig } from "@/lib/website/contact-config";
 import { NextRequest, NextResponse } from "next/server";
 import { postAdminApi } from "@/lib/website/public-api";
 
@@ -76,6 +77,12 @@ export async function POST(request: NextRequest) {
     return fail("Unable to accept this enquiry.", 400);
   }
 
+  const submissionId = readText(body, "submission_id");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(submissionId)) return fail("Reload the form before submitting.", 400);
+  const config = await getContactConfig();
+  if (!config) return fail("Contact settings unavailable.", 503);
+  if (!readText(body, config.contact_mode)) return fail(`Your ${config.contact_mode} is required.`, 400);
+
   const name = readText(body, "name");
   const rawPhone = readText(body, "phone");
   const email = readText(body, "email");
@@ -88,14 +95,14 @@ export async function POST(request: NextRequest) {
 
   if (
     rawPhone.length > 30 ||
-    !/^\+?[\d\s().-]+$/.test(rawPhone)
+    (rawPhone && !/^\+?[\d\s().-]+$/.test(rawPhone))
   ) {
     return fail("Enter a valid phone number.", 400);
   }
 
   const phone = rawPhone.replace(/[\s().-]/g, "");
 
-  if (!/^\+?\d{7,15}$/.test(phone)) {
+  if (phone && !/^\+?\d{7,15}$/.test(phone)) {
     return fail("Enter a valid phone number.", 400);
   }
 
@@ -141,6 +148,7 @@ export async function POST(request: NextRequest) {
       path: "/api/public/leads",
       apiKey: process.env.WEBSITE_LEAD_API_KEY,
       body: {
+        submission_id: submissionId,
         name,
         phone,
         email: email || undefined,
@@ -159,6 +167,7 @@ export async function POST(request: NextRequest) {
       "success" in data &&
       data.success === true;
 
+    if (!result.ok && result.status === 429) return fail("Too many requests. Please try again later.", 429);
     if (!confirmed) {
       return fail("We could not confirm your submission.", 502);
     }

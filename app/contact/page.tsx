@@ -1,3 +1,4 @@
+import { getContactConfig } from "@/lib/website/contact-config";
 import type { Metadata } from "next";
 import {
   business,
@@ -20,7 +21,8 @@ const cardClass =
 const actionClass =
   "mt-6 inline-flex rounded-full bg-teal-800 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-950";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const contactConfig = await getContactConfig();
   const formEnabled = Boolean(
     process.env.LEAD_FORM_ENABLED === "true" &&
     process.env.ADMIN_API_URL &&
@@ -111,7 +113,7 @@ export default function ContactPage() {
       </section>
 
       <div className="mx-auto max-w-3xl px-5 pb-8">
-        <InquiryForm enabled={formEnabled} />
+        <InquiryForm enabled={formEnabled && Boolean(contactConfig)} contactMode={contactConfig?.contact_mode || "phone"} />
       </div>
     </PageFrame>
   );

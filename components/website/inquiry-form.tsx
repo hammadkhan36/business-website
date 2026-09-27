@@ -1,4 +1,5 @@
 "use client";
+import { trackWebsiteEvent } from "@/lib/website/analytics-client";
 
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -6,6 +7,7 @@ import { inquiryContent } from "@/content/inquiry";
 
 type InquiryFormProps = {
   enabled: boolean;
+  contactMode: "phone" | "email";
 };
 
 type FormStatus = "idle" | "sending" | "success" | "error";
@@ -13,9 +15,10 @@ type FormStatus = "idle" | "sending" | "success" | "error";
 const inputClass =
   "mt-2 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20";
 
-export function InquiryForm({ enabled }: InquiryFormProps) {
+export function InquiryForm({ enabled, contactMode }: InquiryFormProps) {
   const [status, setStatus] = useState<FormStatus>("idle");
   const submitting = useRef(false);
+  const submission = useRef({ payload: "", id: "" });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,6 +37,8 @@ export function InquiryForm({ enabled }: InquiryFormProps) {
     setStatus("sending");
 
     const fields = new FormData(form);
+    const payload = JSON.stringify(Object.fromEntries(fields));
+    if (submission.current.payload !== payload || !submission.current.id) submission.current = { payload, id: crypto.randomUUID() };
 
     try {
       const response = await fetch("/api/website/leads", {
@@ -42,6 +47,7 @@ export function InquiryForm({ enabled }: InquiryFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          submission_id: submission.current.id,
           name: fields.get("name"),
           phone: fields.get("phone"),
           email: fields.get("email"),
@@ -66,9 +72,11 @@ export function InquiryForm({ enabled }: InquiryFormProps) {
         throw new Error("Submission was not confirmed.");
       }
 
+      trackWebsiteEvent({ event_type: "lead_submit", label: "Website enquiry" });
       form.reset();
       setStatus("success");
     } catch {
+      trackWebsiteEvent({ event_type: "lead_form_error", label: "Website enquiry" });
       setStatus("error");
     } finally {
       submitting.current = false;
@@ -117,14 +125,14 @@ export function InquiryForm({ enabled }: InquiryFormProps) {
 
             <div>
               <label htmlFor="inquiry-phone" className="text-sm font-medium">
-                {inquiryContent.phoneLabel}
+                Phone {contactMode === "phone" ? "(required)" : "(optional)"}
               </label>
               <input
                 id="inquiry-phone"
                 name="phone"
                 type="tel"
                 autoComplete="tel"
-                required
+                required={contactMode === "phone"}
                 minLength={7}
                 maxLength={30}
                 className={inputClass}
@@ -133,12 +141,13 @@ export function InquiryForm({ enabled }: InquiryFormProps) {
 
             <div>
               <label htmlFor="inquiry-email" className="text-sm font-medium">
-                {inquiryContent.emailLabel}
+                Email {contactMode === "email" ? "(required)" : "(optional)"}
               </label>
               <input
                 id="inquiry-email"
                 name="email"
                 type="email"
+                required={contactMode === "email"}
                 autoComplete="email"
                 maxLength={254}
                 className={inputClass}
