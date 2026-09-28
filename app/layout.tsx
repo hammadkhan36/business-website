@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { business } from "@/content/business";
 import { SiteShell } from "@/components/website/site-shell";
+import { ClickTracker } from "@/components/analytics/click-tracker";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { AnalyticsConsentBanner } from "@/components/analytics/analytics-consent-banner";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       >
         <Suspense fallback={null}>
           <PageViewTracker />
+          <ClickTracker />
         </Suspense>
 
         <SiteShell>{children}</SiteShell>

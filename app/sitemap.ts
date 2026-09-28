@@ -1,3 +1,4 @@
+import { services } from "@/content/services";
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/website/urls";
 import { websiteConfig } from "@/lib/website/config";
@@ -5,7 +6,7 @@ import { websiteConfig } from "@/lib/website/config";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!websiteConfig.allowIndexing) return [];
   // Add routes only when their UI exists and they return a public 200 page.
-  const staticPages = ["/"];
+  const staticPages = ["/", "/about", "/services", "/faq", "/contact", "/book-appointment", ...services.map(service => `/services/${service.slug}`)];
 
   return staticPages.map((path) => ({
     url: absoluteUrl(path),

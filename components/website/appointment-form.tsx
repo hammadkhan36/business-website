@@ -6,6 +6,7 @@ type Config = { contact_mode: "phone" | "email"; services: { id: string; name: s
 const input = "mt-2 block w-full rounded-xl border border-stone-300 bg-white px-4 py-3";
 export function AppointmentForm({ config }: { config: Config }) {
   const busy = useRef(false);
+  const started = useRef(false);
   const submission = useRef({ payload: "", id: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -28,10 +29,10 @@ export function AppointmentForm({ config }: { config: Config }) {
       if (!response.ok || data.success !== true) throw new Error(data.error || "We could not confirm your request.");
       trackWebsiteEvent({ event_type: "appointment_submit", label: "Website appointment" });
       form.reset(); setStatus("success"); setMessage(bookingContent.success);
-    } catch (error) { setStatus("error"); setMessage(error instanceof Error ? error.message : "Please try again."); }
+    } catch (error) { trackWebsiteEvent({ event_type: "appointment_form_error", label: "Website appointment" }); setStatus("error"); setMessage(error instanceof Error ? error.message : "Please try again."); }
     finally { busy.current = false; }
   }
-  return <form onSubmit={submit} className="rounded-2xl border border-stone-200 bg-white p-6">
+  return <form onSubmit={submit} onFocus={() => { if (!started.current) { started.current = true; trackWebsiteEvent({ event_type: "appointment_form_start", label: "Website appointment" }); } }} className="rounded-2xl border border-stone-200 bg-white p-6">
     <fieldset disabled={status === "sending" || status === "success"} className="space-y-5">
       <legend className="sr-only">Appointment request</legend>
       <label className="block">Name<input name="name" autoComplete="name" required minLength={2} maxLength={100} className={input} /></label>
