@@ -35,7 +35,7 @@ Route handlers follow a common pattern: feature flag check (`LEAD_FORM_ENABLED` 
 `lib/website/analytics-client.ts` (client) is the single entry point for events; it is consent-gated via `localStorage` key `website_analytics_consent` and sends nothing when consent is declined (declining also clears the visitor ID). Layout mounts `PageViewTracker`, `ClickTracker` and `AnalyticsConsentBanner`. Click events must not record phone/email values or destination URL query strings. Events post to `/api/analytics/events` (zod-validated) which forwards via `lib/website/analytics.ts`. Events are tagged with optional `NEXT_PUBLIC_BUSINESS_ID`.
 
 ### Legacy code
-`lib/supabase/*`, `config/dentist.ts`, `lib/website/dentist-config.ts` and the direct-Supabase loaders in `lib/website/` (`areas`, `faqs`, `hours`, `offers`, `services`, `business`) predate the admin-API design; they are used only by dev tools / old components and are not required by current public pages (`NEXT_PUBLIC_SUPABASE_*` are optional).
+`lib/supabase/*`, `config/dentist.ts`, `lib/website/dentist-config.ts` and the direct-Supabase loaders in `lib/website/` (`areas`, `faqs`, `hours`, `offers`, `services`, `business`) predate the admin-API design. Nothing in the current pages or dev tools imports them. They are reachable only through unused old components (`site-header.tsx`, `site-footer.tsx`, `forms/appointment-request-form.tsx`), so `NEXT_PUBLIC_SUPABASE_*` are optional. The live pages use `components/website/*`. Full list: `../ARCHIVE-CANDIDATES.md`.
 
 ### Other
 - SEO: `app/sitemap.ts`, `app/robots.ts`; indexing stays off unless `NEXT_PUBLIC_ALLOW_INDEXING=true` (enable only on the final domain).
