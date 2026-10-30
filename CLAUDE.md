@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run lint` — ESLint (flat config, `eslint-config-next`)
 - `npm run check:setup` — validates env var shape (Node 22+, loads `.env.local`, no network calls, never prints values)
 
-There is no test suite. Verification is manual: `/dev-tools/*` pages (404 in production via `app/dev-tools/layout.tsx`) exercise lead, appointment, form, coupon and review submissions.
+There is no test suite. Verification is manual: `/dev-tools/*` pages (404 in production via `app/dev-tools/layout.tsx`) exercise lead and appointment submissions.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Public marketing website for **one** local business (currently a dental clinic),
 ### Website → admin API flow
 The website has no database of its own at runtime. All writes go through Next route handlers in `app/api/website/*` and `app/api/analytics/events`, which proxy server-side to the admin app (`ADMIN_API_URL`) with per-purpose `x-api-key` headers (`WEBSITE_LEAD_API_KEY`, `WEBSITE_APPOINTMENT_API_KEY`, `WEBSITE_ANALYTICS_API_KEY`, `WEBSITE_CONFIG_API_KEY`). The shared helper is `lib/website/public-api.ts` (`server-only`, enforces HTTPS except localhost, 10s timeout).
 
-Key per route: leads → `WEBSITE_LEAD_API_KEY`, appointments → `WEBSITE_APPOINTMENT_API_KEY`, analytics → `WEBSITE_ANALYTICS_API_KEY`; contact-config, forms (`/api/website/forms/submit`), coupons (`validate`/`redeem`) and reviews all use `WEBSITE_CONFIG_API_KEY`. Server actions in `app/actions/*` call the same admin endpoints directly through `lib/website/{leads,forms,coupons,reviews}.ts`. Admin-side endpoint list: `../CLAUDE.md`. `lib/website/admin-config.ts` (`/api/public/business-config`) is currently not imported anywhere.
+Key per route: leads → `WEBSITE_LEAD_API_KEY`, appointments → `WEBSITE_APPOINTMENT_API_KEY`, analytics → `WEBSITE_ANALYTICS_API_KEY`; contact-config uses `WEBSITE_CONFIG_API_KEY`. The forms, coupons and reviews proxies, their dev-tools pages, server actions and libs were moved to `_archive/` (excluded from tsc/eslint, see `_archive/README.md`); the admin endpoints still exist but have no website caller. The remaining `app/actions/contact.ts` is unused. Admin-side endpoint list: `../CLAUDE.md`. `lib/website/admin-config.ts` (`/api/public/business-config`) is currently not imported anywhere.
 
 Route handlers follow a common pattern: feature flag check (`LEAD_FORM_ENABLED` / `APPOINTMENT_FORM_ENABLED` must be `"true"`, else 503), JSON content-type required, `Origin` header must exactly equal the origin of `NEXT_PUBLIC_SITE_URL` (403 otherwise), then validate and forward.
 

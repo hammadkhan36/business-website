@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: message,
+        error: "Analytics unavailable.",
       },
       { status: 502 }
     );

@@ -62,10 +62,6 @@ The website calls these admin APIs through local website proxy routes:
 | Analytics events | `/api/analytics/events`         | `/api/public/analytics/events` |
 | Leads            | `/api/website/leads`            | `/api/public/leads`            |
 | Appointments     | `/api/website/appointments`     | `/api/public/appointments`     |
-| Reviews          | `/api/website/reviews`          | `/api/public/reviews`          |
-| Custom forms     | `/api/website/forms/submit`     | `/api/public/forms/submit`     |
-| Coupon validate  | `/api/website/coupons/validate` | `/api/public/coupons/validate` |
-| Coupon redeem    | `/api/website/coupons/redeem`   | `/api/public/coupons/redeem`   |
 
 
 
